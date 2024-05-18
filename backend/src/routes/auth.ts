@@ -1,3 +1,4 @@
+import { isAuthenticated } from "../middleware/isAuthenticated";
 import {
   loginUser,
   logoutUser,
@@ -9,6 +10,6 @@ const router = express.Router();
 
 router.post("/", registerUser);
 router.post("/login", loginUser);
-router.post("/logout", logoutUser);
+router.post("/logout", isAuthenticated, logoutUser);
 
 export default router;

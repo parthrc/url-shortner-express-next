@@ -1,7 +1,8 @@
 import express from "express";
 import { UserModel } from "../db/users";
 import { authentication, random } from "../helpers/authHelpers";
-import { getUserByEmail } from "./userController";
+import { getUserByEmail, getUserById } from "./userController";
+import { get, identity } from "lodash";
 
 export const registerUser = async (
   req: express.Request,
@@ -115,23 +116,28 @@ export const logoutUser = async (
   res: express.Response
 ) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ msg: "Email needed!" });
-    }
-    const user = await getUserByEmail(email);
+    const currUserId = get(req, "identity._id");
+
+    const user = await getUserById(currUserId);
     if (!user) {
       return res.status(403).json({ msg: "User does not exist" });
     }
-    // Delet sessiontoken from DB
+    // Delete sessiontoken from DB
     user.authentication.sessionToken = "";
     user.save();
     // CLear cookies
     res.clearCookie("SHADY_AUTH");
 
-    return res.status(200).json({ data: user });
+    return res.status(200).json({ data: user, msg: "Logout successful" });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: "Error logging out" });
   }
+};
+
+export const checkAuthStatus = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  res.json({ msg: "Authenticated" });
 };
